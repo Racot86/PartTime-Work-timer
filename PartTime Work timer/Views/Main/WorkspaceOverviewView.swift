@@ -9,8 +9,6 @@ import SwiftUI
 struct WorkspaceOverviewView: View {
     @EnvironmentObject private var store: TimerStore
 
-    let onCreateProject: () -> Void
-
     private let statColumns = [GridItem(.adaptive(minimum: 180, maximum: 260), spacing: 10)]
 
     var body: some View {
@@ -28,23 +26,13 @@ struct WorkspaceOverviewView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 12) {
-                Text("Work Timer")
-                    .font(.title2.weight(.semibold))
-
-                Spacer()
-
-                IconActionButton(
-                    title: "New Project",
-                    systemImage: "plus",
-                    action: onCreateProject
-                )
-            }
+            Text("Work Timer")
+                .font(.title2.weight(.semibold))
 
             if store.isRunning {
                 Label("\(store.activeContextTitle)  \(store.activeClockText)", systemImage: "record.circle.fill")
                     .font(.callout)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(WorkTimerGlassPalette.runningIcon)
                     .monospacedDigit()
                     .lineLimit(1)
             } else {
@@ -55,7 +43,10 @@ struct WorkspaceOverviewView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
-        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .glassEffect(
+            .regular.tint(WorkTimerGlassPalette.neutralSurfaceTint),
+            in: RoundedRectangle(cornerRadius: 16, style: .continuous)
+        )
     }
 
     private var statsStack: some View {

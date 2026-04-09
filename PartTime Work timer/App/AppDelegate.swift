@@ -85,6 +85,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
     }
 
+    func updateMainWindowTitle(title: String, subtitle: String) {
+        DispatchQueue.main.async {
+            guard let mainWindow = self.resolvedMainWindow() else { return }
+            mainWindow.title = title
+            mainWindow.subtitle = subtitle
+        }
+    }
+
     private func hideMainWindow() {
         mainWindow?.orderOut(nil)
 

@@ -12,7 +12,7 @@ struct SidebarProjectRowView: View {
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: project.isCompleted ? "folder.badge.checkmark" : "folder")
-                .foregroundStyle(project.isCompleted ? .secondary : Color.accentColor)
+                .foregroundStyle(project.isCompleted ? WorkTimerGlassPalette.completionIcon : WorkTimerGlassPalette.accentIcon)
                 .imageScale(.small)
 
             Text(project.name)
@@ -28,11 +28,11 @@ struct SidebarProjectRowView: View {
 
             if isRunning {
                 Image(systemName: "record.circle.fill")
-                .foregroundStyle(.red)
+                .foregroundStyle(WorkTimerGlassPalette.runningIcon)
                 .imageScale(.small)
             } else if project.isCompleted {
                 Image(systemName: "checkmark")
-                .foregroundStyle(.secondary)
+                .foregroundStyle(WorkTimerGlassPalette.completionIcon)
                 .imageScale(.small)
             }
         }

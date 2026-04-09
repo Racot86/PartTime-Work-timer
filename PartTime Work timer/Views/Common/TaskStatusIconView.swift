@@ -31,13 +31,13 @@ struct TaskStatusIconView: View {
 
     private var symbolColor: Color {
         if isRunning {
-            return .red
+            return WorkTimerGlassPalette.runningIcon
         }
 
         if task.isCompleted {
-            return .green
+            return WorkTimerGlassPalette.completionIcon
         }
 
-        return task.recordCount > 0 ? .accentColor : .secondary
+        return task.recordCount > 0 ? WorkTimerGlassPalette.trackedIcon : .secondary
     }
 }

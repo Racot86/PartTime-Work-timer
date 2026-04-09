@@ -35,6 +35,9 @@ struct DetailStatCardView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 10)
         .padding(.vertical, 8)
-        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .glassEffect(
+            .regular.tint(WorkTimerGlassPalette.neutralSurfaceTint),
+            in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+        )
     }
 }

@@ -11,7 +11,6 @@ struct TaskDetailView: View {
 
     let projectID: UUID
     let taskID: UUID
-    let onShowProject: () -> Void
 
     private let statColumns = [GridItem(.adaptive(minimum: 180, maximum: 260), spacing: 10)]
 
@@ -19,7 +18,7 @@ struct TaskDetailView: View {
         if let project = store.project(with: projectID), let task = store.task(projectID: projectID, taskID: taskID) {
             GlassEffectContainer(spacing: 12) {
                 VStack(alignment: .leading, spacing: 16) {
-                    header(project: project, task: task)
+                    statusStrip(project: project, task: task)
                     stats(task: task)
                     recordsSection(project: project, task: task)
                 }
@@ -28,95 +27,81 @@ struct TaskDetailView: View {
             }
             .background(Color(nsColor: .windowBackgroundColor))
         } else {
-            WorkspaceOverviewView(onCreateProject: {})
+            WorkspaceOverviewView()
         }
     }
 
-    private func header(project: WorkProject, task: WorkTask) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .top, spacing: 12) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Button(action: onShowProject) {
-                        Label(project.name, systemImage: "folder")
-                    }
-                    .buttonStyle(.link)
-                    .controlSize(.small)
+    private func statusStrip(project: WorkProject, task: WorkTask) -> some View {
+        DetailStatusStripView(
+            items: taskStatusItems(project: project, task: task),
+            note: taskStatusNote(project: project, task: task),
+            noteSystemImage: taskStatusNoteSystemImage(project: project, task: task),
+            noteTint: taskStatusNoteTint(project: project, task: task)
+        )
+    }
 
-                    Text(task.name)
-                        .font(.title2.weight(.semibold))
+    private func taskStatusItems(project: WorkProject, task: WorkTask) -> [DetailStatusItem] {
+        var items = [
+            DetailStatusItem(
+                title: task.isCompleted ? "Completed" : "Open",
+                systemImage: task.isCompleted ? "checkmark.circle.fill" : "circle",
+                tint: task.isCompleted
+                    ? WorkTimerGlassPalette.completionIcon
+                    : WorkTimerGlassPalette.accentIcon
+            )
+        ]
 
-                    HStack(spacing: 8) {
-                        StatusBadgeView(
-                            title: task.isCompleted ? "Completed" : "Open",
-                            systemImage: task.isCompleted ? "checkmark.circle.fill" : "circle",
-                            tint: task.isCompleted ? .secondary : .accentColor
-                        )
-
-                        if store.isActiveTask(projectID: project.id, taskID: task.id) {
-                            StatusBadgeView(
-                                title: "Running",
-                                systemImage: "record.circle.fill",
-                                tint: .red
-                            )
-                        }
-                    }
-                }
-
-                Spacer()
-
-                HStack(spacing: 8) {
-                    IconActionButton(
-                        title: "Start Timer",
-                        systemImage: "play.fill",
-                        prominence: .prominent,
-                        action: {
-                            store.startTimer(projectID: project.id, taskID: task.id)
-                        }
-                    )
-                    .disabled(!store.canStartTimer(projectID: project.id, taskID: task.id))
-
-                    IconActionButton(
-                        title: "Stop Timer",
-                        systemImage: "stop.fill",
-                        action: {
-                            store.stopTimer()
-                        }
-                    )
-                    .disabled(!store.isActiveTask(projectID: project.id, taskID: task.id))
-
-                    IconActionButton(
-                        title: task.isCompleted ? "Reopen Task" : "Complete Task",
-                        systemImage: task.isCompleted ? "arrow.counterclockwise" : "checkmark",
-                        action: {
-                            if task.isCompleted {
-                                store.reopenTask(projectID: project.id, taskID: task.id)
-                            } else {
-                                store.completeTask(projectID: project.id, taskID: task.id)
-                            }
-                        }
-                    )
-                    .disabled(store.isActiveTask(projectID: project.id, taskID: task.id))
-                }
-            }
-
-            if store.isActiveTask(projectID: project.id, taskID: task.id) {
-                Label(store.activeClockText, systemImage: "record.circle.fill")
-                    .font(.callout)
-                    .foregroundStyle(.red)
-                    .monospacedDigit()
-            } else if store.isRunning {
-                Label("Another task is currently running. Stop it before starting this one.", systemImage: "exclamationmark.triangle")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            } else if project.isCompleted {
-                Label("Reopen the project before tracking more time on this task.", systemImage: "lock")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
+        if store.isActiveTask(projectID: project.id, taskID: task.id) {
+            items.append(
+                DetailStatusItem(
+                    title: "Running",
+                    systemImage: "record.circle.fill",
+                    tint: WorkTimerGlassPalette.runningIcon
+                )
+            )
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(12)
-        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+
+        return items
+    }
+
+    private func taskStatusNote(project: WorkProject, task: WorkTask) -> String? {
+        if store.isActiveTask(projectID: project.id, taskID: task.id) {
+            return store.activeClockText
+        }
+
+        if store.isRunning {
+            return "Another task is currently running. Stop it before starting this one."
+        }
+
+        if project.isCompleted {
+            return "Reopen the project before tracking more time on this task."
+        }
+
+        return nil
+    }
+
+    private func taskStatusNoteSystemImage(project: WorkProject, task: WorkTask) -> String? {
+        if store.isActiveTask(projectID: project.id, taskID: task.id) {
+            return "record.circle.fill"
+        }
+
+        if store.isRunning {
+            return "exclamationmark.triangle"
+        }
+
+        if project.isCompleted {
+            return "lock"
+        }
+
+        return nil
+    }
+
+    private func taskStatusNoteTint(project: WorkProject, task: WorkTask) -> Color {
+        if store.isActiveTask(projectID: project.id, taskID: task.id) {
+            return WorkTimerGlassPalette.runningIcon
+        }
+
+        return .secondary
     }
 
     private func stats(task: WorkTask) -> some View {
@@ -163,7 +148,10 @@ struct TaskDetailView: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 4)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .glassEffect(
+                    .regular.tint(WorkTimerGlassPalette.raisedSurfaceTint),
+                    in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+                )
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)

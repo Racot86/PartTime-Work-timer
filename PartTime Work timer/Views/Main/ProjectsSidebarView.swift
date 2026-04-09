@@ -9,7 +9,6 @@ struct ProjectsSidebarView: View {
     @EnvironmentObject private var store: TimerStore
 
     @Binding var selection: SidebarSelection?
-    @Binding var isPresentingProjectSheet: Bool
 
     var body: some View {
         VStack(spacing: 0) {
@@ -57,14 +56,6 @@ struct ProjectsSidebarView: View {
                 .font(.headline.bold())
 
             Spacer()
-
-            IconActionButton(
-                title: "New Project",
-                systemImage: "plus",
-                action: {
-                    isPresentingProjectSheet = true
-                }
-            )
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 8)

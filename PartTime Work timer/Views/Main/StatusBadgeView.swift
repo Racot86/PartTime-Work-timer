@@ -11,9 +11,17 @@ struct StatusBadgeView: View {
     let tint: Color
 
     var body: some View {
-        Label(title, systemImage: systemImage)
-            .font(.caption.weight(.medium))
-            .imageScale(.small)
-            .foregroundStyle(tint)
+        HStack(spacing: 6) {
+            Image(systemName: systemImage)
+                .foregroundStyle(tint)
+
+            Text(title)
+                .foregroundStyle(.primary)
+        }
+        .font(.caption.weight(.medium))
+        .imageScale(.small)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 5)
+        .glassEffect(.regular.tint(tint.opacity(0.16)), in: Capsule())
     }
 }

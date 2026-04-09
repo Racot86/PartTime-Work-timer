@@ -33,7 +33,7 @@ struct SidebarPomodoroWidgetView: View {
 
             Text(snapshot.detailText)
                 .font(.caption)
-                .foregroundStyle(snapshot.showsVisualAlert ? .orange : .secondary)
+                .foregroundStyle(snapshot.showsVisualAlert ? WorkTimerGlassPalette.restIcon : .secondary)
                 .lineLimit(2)
 
             Text(snapshot.scheduleText)
@@ -43,11 +43,14 @@ struct SidebarPomodoroWidgetView: View {
             if snapshot.isEnabled && snapshot.isRunning {
                 Text(snapshot.countdownText)
                     .font(.caption.monospacedDigit())
-                    .foregroundStyle(snapshot.showsVisualAlert ? .orange : .primary)
+                    .foregroundStyle(snapshot.showsVisualAlert ? WorkTimerGlassPalette.restIcon : .primary)
             }
         }
         .padding(10)
-        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .glassEffect(
+            .regular.tint(WorkTimerGlassPalette.neutralSurfaceTint),
+            in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+        )
     }
 
     private func accentColor(for snapshot: PomodoroService.Snapshot) -> Color {
@@ -59,9 +62,9 @@ struct SidebarPomodoroWidgetView: View {
         case .idle:
             return .secondary
         case .work:
-            return .green
+            return WorkTimerGlassPalette.accentIcon
         case .rest:
-            return .orange
+            return WorkTimerGlassPalette.restIcon
         }
     }
 }

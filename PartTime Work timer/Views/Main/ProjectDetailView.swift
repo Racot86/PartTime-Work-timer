@@ -10,7 +10,6 @@ struct ProjectDetailView: View {
     @EnvironmentObject private var store: TimerStore
 
     let projectID: UUID
-    let onCreateTask: () -> Void
     let onSelectTask: (UUID) -> Void
 
     private let statColumns = [GridItem(.adaptive(minimum: 180, maximum: 260), spacing: 10)]
@@ -19,7 +18,7 @@ struct ProjectDetailView: View {
         if let project = store.project(with: projectID) {
             GlassEffectContainer(spacing: 12) {
                 VStack(alignment: .leading, spacing: 16) {
-                    header(for: project)
+                    statusStrip(for: project)
                     stats(for: project)
                     tasksSection(for: project)
                 }
@@ -28,68 +27,41 @@ struct ProjectDetailView: View {
             }
             .background(Color(nsColor: .windowBackgroundColor))
         } else {
-            WorkspaceOverviewView(onCreateProject: {})
+            WorkspaceOverviewView()
         }
     }
 
-    private func header(for project: WorkProject) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .top, spacing: 12) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(project.name)
-                        .font(.title2.weight(.semibold))
+    private func statusStrip(for project: WorkProject) -> some View {
+        DetailStatusStripView(
+            items: projectStatusItems(for: project),
+            note: store.isActiveProject(project.id) ? "Timer is running on a task in this project." : nil,
+            noteSystemImage: store.isActiveProject(project.id) ? "record.circle.fill" : nil,
+            noteTint: WorkTimerGlassPalette.runningIcon
+        )
+    }
 
-                    HStack(spacing: 8) {
-                        StatusBadgeView(
-                            title: project.isCompleted ? "Completed" : "Active",
-                            systemImage: project.isCompleted ? "checkmark.circle.fill" : "folder.fill",
-                            tint: project.isCompleted ? .secondary : .accentColor
-                        )
+    private func projectStatusItems(for project: WorkProject) -> [DetailStatusItem] {
+        var items = [
+            DetailStatusItem(
+                title: project.isCompleted ? "Completed" : "Active",
+                systemImage: project.isCompleted ? "checkmark.circle.fill" : "folder.fill",
+                tint: project.isCompleted
+                    ? WorkTimerGlassPalette.completionIcon
+                    : WorkTimerGlassPalette.accentIcon
+            )
+        ]
 
-                        if store.isActiveProject(project.id) {
-                            StatusBadgeView(
-                                title: "Timer Running",
-                                systemImage: "record.circle.fill",
-                                tint: .red
-                            )
-                        }
-                    }
-                }
-
-                Spacer()
-
-                HStack(spacing: 8) {
-                    IconActionButton(
-                        title: "New Task",
-                        systemImage: "plus",
-                        action: onCreateTask
-                    )
-                    .disabled(project.isCompleted)
-
-                    IconActionButton(
-                        title: project.isCompleted ? "Reopen Project" : "Complete Project",
-                        systemImage: project.isCompleted ? "arrow.counterclockwise" : "checkmark",
-                        action: {
-                            if project.isCompleted {
-                                store.reopenProject(project.id)
-                            } else {
-                                store.completeProject(project.id)
-                            }
-                        }
-                    )
-                    .disabled(store.isActiveProject(project.id))
-                }
-            }
-
-            if store.isActiveProject(project.id) {
-                Label("Timer is running on a task in this project.", systemImage: "record.circle.fill")
-                    .font(.caption)
-                    .foregroundStyle(.red)
-            }
+        if store.isActiveProject(project.id) {
+            items.append(
+                DetailStatusItem(
+                    title: "Timer Running",
+                    systemImage: "record.circle.fill",
+                    tint: WorkTimerGlassPalette.runningIcon
+                )
+            )
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(12)
-        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+
+        return items
     }
 
     private func stats(for project: WorkProject) -> some View {
@@ -105,19 +77,8 @@ struct ProjectDetailView: View {
         let orderedTasks = project.orderedTasks
 
         return VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("Tasks")
-                    .font(.headline)
-
-                Spacer()
-
-                IconActionButton(
-                    title: "New Task",
-                    systemImage: "plus",
-                    action: onCreateTask
-                )
-                .disabled(project.isCompleted)
-            }
+            Text("Tasks")
+                .font(.headline)
 
             if orderedTasks.isEmpty {
                 Text("No tasks yet.")
@@ -144,7 +105,10 @@ struct ProjectDetailView: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 4)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .glassEffect(
+                    .regular.tint(WorkTimerGlassPalette.raisedSurfaceTint),
+                    in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+                )
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)

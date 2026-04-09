@@ -15,14 +15,32 @@ struct ContentView: View {
 
     var body: some View {
         NavigationSplitView {
-            ProjectsSidebarView(
-                selection: $selection,
-                isPresentingProjectSheet: $isPresentingProjectSheet
-            )
+            ProjectsSidebarView(selection: $selection)
+                .toolbar {
+                    SidebarToolbarContent(
+                        selectedProject: selectedProject,
+                        onCreateProject: {
+                            isPresentingProjectSheet = true
+                        },
+                        onCreateTask: { projectID in
+                            taskComposerContext = TaskComposerContext(projectID: projectID)
+                        }
+                    )
+                }
         } detail: {
             detailContent
         }
         .navigationSplitViewStyle(.balanced)
+        .navigationTitle(windowTitle)
+        .navigationSubtitle(windowSubtitle)
+        .toolbarRole(.editor)
+        .toolbar {
+            MainToolbarContent(
+                store: store,
+                selectedProject: selectedProject,
+                selectedTask: selectedTask
+            )
+        }
         .frame(minWidth: 980, minHeight: 620)
         .background(Color(nsColor: .windowBackgroundColor))
         .sheet(isPresented: $isPresentingProjectSheet) {
@@ -42,6 +60,10 @@ struct ContentView: View {
             }
         }
         .onAppear(perform: ensureInitialSelection)
+        .onAppear(perform: syncWindowTitle)
+        .onChange(of: windowTitleToken) { _, _ in
+            syncWindowTitle()
+        }
     }
 
     @ViewBuilder
@@ -50,9 +72,6 @@ struct ContentView: View {
         case .project(let projectID):
             ProjectDetailView(
                 projectID: projectID,
-                onCreateTask: {
-                    taskComposerContext = TaskComposerContext(projectID: projectID)
-                },
                 onSelectTask: { taskID in
                     selection = .task(projectID: projectID, taskID: taskID)
                 }
@@ -60,18 +79,58 @@ struct ContentView: View {
         case .task(let projectID, let taskID):
             TaskDetailView(
                 projectID: projectID,
-                taskID: taskID,
-                onShowProject: {
-                    selection = .project(projectID)
-                }
+                taskID: taskID
             )
         case .none:
-            WorkspaceOverviewView(
-                onCreateProject: {
-                    isPresentingProjectSheet = true
-                }
-            )
+            WorkspaceOverviewView()
         }
+    }
+
+    private var selectedProject: WorkProject? {
+        switch selection {
+        case .project(let projectID):
+            store.project(with: projectID)
+        case .task(let projectID, _):
+            store.project(with: projectID)
+        case .none:
+            nil
+        }
+    }
+
+    private var selectedTask: WorkTask? {
+        guard case .task(let projectID, let taskID) = selection else {
+            return nil
+        }
+
+        return store.task(projectID: projectID, taskID: taskID)
+    }
+
+    private var windowTitle: String {
+        if let selectedTask {
+            return selectedTask.name
+        }
+
+        if let selectedProject {
+            return selectedProject.name
+        }
+
+        return "Overview"
+    }
+
+    private var windowSubtitle: String {
+        if selectedTask != nil, let selectedProject {
+            return selectedProject.name
+        }
+
+        if let selectedProject {
+            return selectedProject.isCompleted ? "Completed Project" : "Project"
+        }
+
+        return "Part-Time Work Timer"
+    }
+
+    private var windowTitleToken: String {
+        "\(windowTitle)|\(windowSubtitle)"
     }
 
     private func ensureInitialSelection() {
@@ -87,6 +146,11 @@ struct ContentView: View {
         }
 
         selection = store.recommendedSelection()
+    }
+
+    private func syncWindowTitle() {
+        guard let appDelegate = NSApplication.shared.delegate as? AppDelegate else { return }
+        appDelegate.updateMainWindowTitle(title: windowTitle, subtitle: windowSubtitle)
     }
 }
 

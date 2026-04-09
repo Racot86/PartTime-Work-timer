@@ -11,29 +11,17 @@ struct SidebarTaskRowView: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
-                .foregroundStyle(task.isCompleted ? .secondary : .secondary)
-                .imageScale(.small)
+            TaskStatusIconView(task: task, isRunning: isRunning)
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text(task.name)
-                    .font(.subheadline)
-                    .strikethrough(task.isCompleted)
-                    .lineLimit(1)
-
-                Text("\(task.recordCount) record\(task.recordCount == 1 ? "" : "s") • \(task.totalDurationText)")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-            }
+            Text(task.name)
+                .font(.subheadline)
+                .lineLimit(1)
 
             Spacer()
 
-            if isRunning {
-                Image(systemName: "record.circle.fill")
-                    .foregroundStyle(.red)
-                    .imageScale(.small)
-            }
+            Text(task.totalDurationText)
+                .font(.caption.monospacedDigit())
+                .foregroundStyle(.secondary)
         }
         .padding(.vertical, 1)
     }

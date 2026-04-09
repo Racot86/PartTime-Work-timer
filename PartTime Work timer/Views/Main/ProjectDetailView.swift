@@ -13,17 +13,18 @@ struct ProjectDetailView: View {
     let onCreateTask: () -> Void
     let onSelectTask: (UUID) -> Void
 
-    private let statColumns = [GridItem(.adaptive(minimum: 150, maximum: 220), spacing: 12)]
+    private let statColumns = [GridItem(.adaptive(minimum: 180, maximum: 260), spacing: 10)]
 
     var body: some View {
         if let project = store.project(with: projectID) {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
+            GlassEffectContainer(spacing: 12) {
+                VStack(alignment: .leading, spacing: 16) {
                     header(for: project)
                     stats(for: project)
                     tasksSection(for: project)
                 }
-                .padding(18)
+                .padding(16)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
             .background(Color(nsColor: .windowBackgroundColor))
         } else {
@@ -32,11 +33,11 @@ struct ProjectDetailView: View {
     }
 
     private func header(for project: WorkProject) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .top, spacing: 16) {
-                VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .top, spacing: 12) {
+                VStack(alignment: .leading, spacing: 6) {
                     Text(project.name)
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .font(.title2.weight(.semibold))
 
                     HStack(spacing: 8) {
                         StatusBadgeView(
@@ -53,10 +54,6 @@ struct ProjectDetailView: View {
                             )
                         }
                     }
-
-                    Text("Review task progress, create new tasks, and see the full time spent across this project.")
-                        .font(.body)
-                        .foregroundStyle(.secondary)
                 }
 
                 Spacer()
@@ -65,7 +62,6 @@ struct ProjectDetailView: View {
                     IconActionButton(
                         title: "New Task",
                         systemImage: "plus",
-                        prominence: .prominent,
                         action: onCreateTask
                     )
                     .disabled(project.isCompleted)
@@ -86,21 +82,18 @@ struct ProjectDetailView: View {
             }
 
             if store.isActiveProject(project.id) {
-                Label("Stop the active timer before closing this project.", systemImage: "record.circle.fill")
+                Label("Timer is running on a task in this project.", systemImage: "record.circle.fill")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.red)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(18)
-        .background(
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .fill(Color(nsColor: .controlBackgroundColor))
-        )
+        .padding(12)
+        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
     private func stats(for project: WorkProject) -> some View {
-        LazyVGrid(columns: statColumns, spacing: 12) {
+        LazyVGrid(columns: statColumns, alignment: .leading, spacing: 10) {
             DetailStatCardView(title: "Total Time", value: project.totalDurationText, detail: "All task records")
             DetailStatCardView(title: "Today", value: project.todayDurationText, detail: "\(project.totalRecordCount) records")
             DetailStatCardView(title: "Open Tasks", value: "\(project.openTaskCount)", detail: "\(project.completedTaskCount) completed")
@@ -109,10 +102,12 @@ struct ProjectDetailView: View {
     }
 
     private func tasksSection(for project: WorkProject) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
+        let orderedTasks = project.orderedTasks
+
+        return VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text("Tasks")
-                    .font(.title3.bold())
+                    .font(.headline)
 
                 Spacer()
 
@@ -124,29 +119,34 @@ struct ProjectDetailView: View {
                 .disabled(project.isCompleted)
             }
 
-            if project.tasks.isEmpty {
-                Text("No tasks yet. Add a task and start tracking time.")
-                    .font(.subheadline)
+            if orderedTasks.isEmpty {
+                Text("No tasks yet.")
+                    .font(.callout)
                     .foregroundStyle(.secondary)
-                    .padding(14)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(
-                        RoundedRectangle(cornerRadius: 18, style: .continuous)
-                            .fill(.thinMaterial)
-                    )
             } else {
-                VStack(spacing: 10) {
-                    ForEach(project.orderedTasks) { task in
-                        ProjectTaskListRowView(
-                            task: task,
-                            isRunning: store.isActiveTask(projectID: project.id, taskID: task.id),
-                            onOpen: {
-                                onSelectTask(task.id)
+                ScrollView {
+                    LazyVStack(spacing: 0) {
+                        ForEach(Array(orderedTasks.enumerated()), id: \.element.id) { index, task in
+                            ProjectTaskListRowView(
+                                task: task,
+                                isRunning: store.isActiveTask(projectID: project.id, taskID: task.id),
+                                onOpen: {
+                                    onSelectTask(task.id)
+                                }
+                            )
+
+                            if index < orderedTasks.count - 1 {
+                                Divider()
                             }
-                        )
+                        }
                     }
                 }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 4)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 }

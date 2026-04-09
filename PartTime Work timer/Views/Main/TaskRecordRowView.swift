@@ -12,19 +12,23 @@ struct TaskRecordRowView: View {
     var body: some View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
-                Text(record.dayText)
-                    .font(.subheadline.weight(.semibold))
+                Label(record.dayText, systemImage: "calendar")
+                    .font(.subheadline.weight(.medium))
 
-                Text(record.timeRangeText)
+                Label(record.timeRangeText, systemImage: "clock")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
 
             Spacer()
 
-            Text(record.durationText)
-                .font(.subheadline.weight(.semibold))
-                .monospacedDigit()
+            Label {
+                Text(record.durationText)
+                    .monospacedDigit()
+            } icon: {
+                Image(systemName: "timer")
+            }
+            .font(.subheadline.weight(.semibold))
 
             Button(role: .destructive, action: onDelete) {
                 Label("Delete Record", systemImage: "trash")
@@ -34,11 +38,6 @@ struct TaskRecordRowView: View {
             .controlSize(.small)
             .help("Delete Record")
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(.thinMaterial)
-        )
+        .padding(.vertical, 8)
     }
 }

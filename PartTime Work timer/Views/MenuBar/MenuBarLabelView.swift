@@ -12,7 +12,7 @@ struct MenuBarLabelView: View {
         Group {
             if store.isRunning {
                 HStack(spacing: 6) {
-                    Image(systemName: "timer")
+                    Image(systemName: store.pomodoroSnapshot.showsVisualAlert ? "cup.and.saucer.fill" : "timer")
                     Text(store.activeClockText)
                         .monospacedDigit()
                 }

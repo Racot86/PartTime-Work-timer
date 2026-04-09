@@ -15,8 +15,6 @@ struct ProjectsSidebarView: View {
         VStack(spacing: 0) {
             header
 
-            Divider()
-
             List(selection: $selection) {
                 if store.projects.isEmpty {
                     Text("Create a project to start tracking time.")
@@ -43,7 +41,13 @@ struct ProjectsSidebarView: View {
                 }
             }
             .listStyle(.sidebar)
-            .environment(\.defaultMinListRowHeight, 24)
+            .environment(\.defaultMinListRowHeight, 22)
+
+            Divider()
+
+            SidebarPomodoroWidgetView()
+                .padding(.horizontal, 10)
+                .padding(.vertical, 10)
         }
     }
 
@@ -63,6 +67,6 @@ struct ProjectsSidebarView: View {
             )
         }
         .padding(.horizontal, 14)
-        .padding(.vertical, 10)
+        .padding(.vertical, 8)
     }
 }

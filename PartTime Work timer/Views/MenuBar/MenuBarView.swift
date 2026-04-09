@@ -33,7 +33,14 @@ struct MenuBarView: View {
     }
 
     private func openTrackerWindow() {
-        openWindow(id: PartTime_Work_timerApp.mainWindowID)
-        NSApplication.shared.activate(ignoringOtherApps: true)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            openWindow(id: PartTime_Work_timerApp.mainWindowID)
+
+            if let appDelegate = NSApplication.shared.delegate as? AppDelegate {
+                DispatchQueue.main.async {
+                    appDelegate.showMainWindow()
+                }
+            }
+        }
     }
 }

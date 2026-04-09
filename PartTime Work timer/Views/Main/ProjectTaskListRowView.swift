@@ -12,44 +12,39 @@ struct ProjectTaskListRowView: View {
 
     var body: some View {
         Button(action: onOpen) {
-            HStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 8) {
-                        Text(task.name)
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(.primary)
-                            .strikethrough(task.isCompleted)
-                            .lineLimit(1)
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 10) {
+                    TaskStatusIconView(task: task, isRunning: isRunning)
 
-                        if task.isCompleted {
-                            StatusBadgeView(title: "Completed", systemImage: "checkmark.circle.fill", tint: .secondary)
-                        } else if isRunning {
-                            StatusBadgeView(title: "Running", systemImage: "record.circle.fill", tint: .red)
-                        }
-                    }
+                    Text(task.name)
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
 
-                    Text("\(task.recordCount) record\(task.recordCount == 1 ? "" : "s")")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    Spacer(minLength: 8)
+
+                    Text(task.totalDurationText)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.primary)
+                        .monospacedDigit()
                 }
 
-                Spacer()
+                HStack(spacing: 8) {
+                    Label(
+                        "\(task.recordCount) record\(task.recordCount == 1 ? "" : "s")",
+                        systemImage: "clock"
+                    )
 
-                Text(task.totalDurationText)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.primary)
-                    .monospacedDigit()
-
-                Image(systemName: "chevron.right")
-                    .font(.caption2.weight(.semibold))
-                    .foregroundStyle(.tertiary)
+                    if let latestRecord = task.latestRecord {
+                        Label(latestRecord.dayText, systemImage: "calendar")
+                    }
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 12)
-            .background(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(.thinMaterial)
-            )
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.vertical, 8)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }

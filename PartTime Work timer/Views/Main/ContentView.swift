@@ -23,7 +23,7 @@ struct ContentView: View {
             detailContent
         }
         .navigationSplitViewStyle(.balanced)
-        .frame(minWidth: 1080, minHeight: 700)
+        .frame(minWidth: 980, minHeight: 620)
         .background(Color(nsColor: .windowBackgroundColor))
         .sheet(isPresented: $isPresentingProjectSheet) {
             CreateProjectSheetView { projectName in

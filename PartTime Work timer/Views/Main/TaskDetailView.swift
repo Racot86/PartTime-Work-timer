@@ -13,17 +13,18 @@ struct TaskDetailView: View {
     let taskID: UUID
     let onShowProject: () -> Void
 
-    private let statColumns = [GridItem(.adaptive(minimum: 150, maximum: 220), spacing: 12)]
+    private let statColumns = [GridItem(.adaptive(minimum: 180, maximum: 260), spacing: 10)]
 
     var body: some View {
         if let project = store.project(with: projectID), let task = store.task(projectID: projectID, taskID: taskID) {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
+            GlassEffectContainer(spacing: 12) {
+                VStack(alignment: .leading, spacing: 16) {
                     header(project: project, task: task)
                     stats(task: task)
                     recordsSection(project: project, task: task)
                 }
-                .padding(18)
+                .padding(16)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
             .background(Color(nsColor: .windowBackgroundColor))
         } else {
@@ -32,9 +33,9 @@ struct TaskDetailView: View {
     }
 
     private func header(project: WorkProject, task: WorkTask) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .top, spacing: 16) {
-                VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .top, spacing: 12) {
+                VStack(alignment: .leading, spacing: 6) {
                     Button(action: onShowProject) {
                         Label(project.name, systemImage: "folder")
                     }
@@ -42,7 +43,7 @@ struct TaskDetailView: View {
                     .controlSize(.small)
 
                     Text(task.name)
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .font(.title2.weight(.semibold))
 
                     HStack(spacing: 8) {
                         StatusBadgeView(
@@ -99,21 +100,10 @@ struct TaskDetailView: View {
             }
 
             if store.isActiveTask(projectID: project.id, taskID: task.id) {
-                HStack(spacing: 6) {
-                    Image(systemName: "record.circle.fill")
-                        .foregroundStyle(.red)
-                        .imageScale(.small)
-
-                    Text(store.activeClockText)
-                        .font(.subheadline.weight(.semibold))
-                        .monospacedDigit()
-                }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 8)
-                .background(
-                    Capsule(style: .continuous)
-                        .fill(Color(nsColor: .windowBackgroundColor))
-                )
+                Label(store.activeClockText, systemImage: "record.circle.fill")
+                    .font(.callout)
+                    .foregroundStyle(.red)
+                    .monospacedDigit()
             } else if store.isRunning {
                 Label("Another task is currently running. Stop it before starting this one.", systemImage: "exclamationmark.triangle")
                     .font(.caption)
@@ -125,15 +115,12 @@ struct TaskDetailView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(18)
-        .background(
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .fill(Color(nsColor: .controlBackgroundColor))
-        )
+        .padding(12)
+        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
     private func stats(task: WorkTask) -> some View {
-        LazyVGrid(columns: statColumns, spacing: 12) {
+        LazyVGrid(columns: statColumns, alignment: .leading, spacing: 10) {
             DetailStatCardView(title: "Total Time", value: task.totalDurationText, detail: "All records")
             DetailStatCardView(title: "Today", value: task.todayDurationText, detail: "\(task.recordCount) total records")
             DetailStatCardView(title: "Records", value: "\(task.recordCount)", detail: "Timer start/stop sessions")
@@ -146,32 +133,39 @@ struct TaskDetailView: View {
     }
 
     private func recordsSection(project: WorkProject, task: WorkTask) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Time Records")
-                .font(.title3.bold())
+        let orderedRecords = task.orderedRecords
 
-            if task.records.isEmpty {
-                Text("No time records yet. Start and stop the timer to build its history.")
-                    .font(.subheadline)
+        return VStack(alignment: .leading, spacing: 12) {
+            Text("Time Records")
+                .font(.headline)
+
+            if orderedRecords.isEmpty {
+                Text("No time records yet.")
+                    .font(.callout)
                     .foregroundStyle(.secondary)
-                    .padding(14)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(
-                        RoundedRectangle(cornerRadius: 18, style: .continuous)
-                            .fill(.thinMaterial)
-                    )
             } else {
-                VStack(spacing: 10) {
-                    ForEach(task.orderedRecords) { record in
-                        TaskRecordRowView(
-                            record: record,
-                            onDelete: {
-                                store.deleteRecord(projectID: project.id, taskID: task.id, recordID: record.id)
+                ScrollView {
+                    LazyVStack(spacing: 0) {
+                        ForEach(Array(orderedRecords.enumerated()), id: \.element.id) { index, record in
+                            TaskRecordRowView(
+                                record: record,
+                                onDelete: {
+                                    store.deleteRecord(projectID: project.id, taskID: task.id, recordID: record.id)
+                                }
+                            )
+
+                            if index < orderedRecords.count - 1 {
+                                Divider()
                             }
-                        )
+                        }
                     }
                 }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 4)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 }

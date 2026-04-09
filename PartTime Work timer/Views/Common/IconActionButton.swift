@@ -22,10 +22,10 @@ struct IconActionButton: View {
         switch prominence {
         case .standard:
             baseButton
-                .buttonStyle(.bordered)
+                .buttonStyle(.glass)
         case .prominent:
             baseButton
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.glassProminent)
         }
     }
 

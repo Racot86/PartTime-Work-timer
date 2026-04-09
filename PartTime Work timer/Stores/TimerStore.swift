@@ -13,10 +13,18 @@ final class TimerStore: ObservableObject {
     @Published private(set) var projects: [WorkProject] = []
     @Published private(set) var activeTimer: ActiveTimer?
     @Published private(set) var now = Date()
+    @Published private(set) var pomodoroSnapshot = PomodoroService.Snapshot.make(
+        isEnabled: true,
+        isRunning: false,
+        workDuration: 25 * 60,
+        restDuration: 5 * 60,
+        transitionCount: 0
+    )
 
     private let modelContext: ModelContext
     private let legacyStateStore: TimerStateFileStore
     private let migrationUserDefaults: UserDefaults
+    private let pomodoroService: PomodoroService
     private let legacyStorageKey = "partTimeWorkTimer.state"
     private var clockCancellable: AnyCancellable?
     private var terminationCancellable: AnyCancellable?
@@ -24,12 +32,14 @@ final class TimerStore: ObservableObject {
     init(
         modelContext: ModelContext,
         legacyStateStore: TimerStateFileStore? = nil,
+        pomodoroService: PomodoroService? = nil,
         migrationUserDefaults: UserDefaults = .standard,
         loadPersistedState: Bool = true
     ) {
         self.modelContext = modelContext
         self.legacyStateStore = legacyStateStore ?? TimerStateFileStore()
         self.migrationUserDefaults = migrationUserDefaults
+        self.pomodoroService = pomodoroService ?? PomodoroService(defaults: migrationUserDefaults)
 
         if loadPersistedState {
             migrateLegacyStateIfNeeded()
@@ -38,6 +48,7 @@ final class TimerStore: ObservableObject {
 
         startClock()
         observeApplicationTermination()
+        refreshPomodoroState()
     }
 
     deinit {
@@ -102,6 +113,10 @@ final class TimerStore: ObservableObject {
         }
 
         return "\(activeProject.name) • \(activeTask.name)"
+    }
+
+    var pomodoroEnabled: Bool {
+        pomodoroSnapshot.isEnabled
     }
 
     func project(with id: UUID) -> WorkProject? {
@@ -255,6 +270,11 @@ final class TimerStore: ObservableObject {
         task.records.removeAll { $0.id == recordID }
         modelContext.delete(record)
         _ = saveChanges()
+    }
+
+    func setPomodoroEnabled(_ isEnabled: Bool) {
+        pomodoroService.setEnabled(isEnabled)
+        refreshPomodoroState()
     }
 
     private func migrateLegacyStateIfNeeded() {
@@ -414,6 +434,7 @@ final class TimerStore: ObservableObject {
         }
 
         activeTimer = fetchedTimers.first
+        refreshPomodoroState()
     }
 
     private func sortedProjects(_ projects: [WorkProject]) -> [WorkProject] {
@@ -445,6 +466,7 @@ final class TimerStore: ObservableObject {
             .autoconnect()
             .sink { [weak self] newDate in
                 self?.now = newDate
+                self?.refreshPomodoroState()
             }
     }
 
@@ -462,6 +484,10 @@ final class TimerStore: ObservableObject {
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
             .joined(separator: " ")
+    }
+
+    private func refreshPomodoroState() {
+        pomodoroSnapshot = pomodoroService.update(activeTimer: activeTimer, now: now)
     }
 }
 

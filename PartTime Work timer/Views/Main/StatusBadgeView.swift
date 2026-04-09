@@ -12,14 +12,8 @@ struct StatusBadgeView: View {
 
     var body: some View {
         Label(title, systemImage: systemImage)
-            .font(.caption2.weight(.semibold))
+            .font(.caption.weight(.medium))
             .imageScale(.small)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(
-                Capsule(style: .continuous)
-                    .fill(tint.opacity(0.12))
-            )
             .foregroundStyle(tint)
     }
 }

@@ -15,30 +15,27 @@ struct SidebarProjectRowView: View {
                 .foregroundStyle(project.isCompleted ? .secondary : Color.accentColor)
                 .imageScale(.small)
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text(project.name)
-                    .font(.subheadline.weight(.semibold))
-                    .strikethrough(project.isCompleted)
-                    .lineLimit(1)
-
-                Text("\(project.tasks.count) task\(project.tasks.count == 1 ? "" : "s") • \(project.totalDurationText)")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-            }
+            Text(project.name)
+                .font(.subheadline.weight(.medium))
+                .strikethrough(project.isCompleted)
+                .lineLimit(1)
 
             Spacer()
 
+            Text(project.totalDurationText)
+                .font(.caption.monospacedDigit())
+                .foregroundStyle(.secondary)
+
             if isRunning {
-                Image(systemName: "timer")
-                    .foregroundStyle(.red)
-                    .imageScale(.small)
+                Image(systemName: "record.circle.fill")
+                .foregroundStyle(.red)
+                .imageScale(.small)
             } else if project.isCompleted {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(.secondary)
-                    .imageScale(.small)
+                Image(systemName: "checkmark")
+                .foregroundStyle(.secondary)
+                .imageScale(.small)
             }
         }
-        .padding(.vertical, 2)
+        .padding(.vertical, 1)
     }
 }

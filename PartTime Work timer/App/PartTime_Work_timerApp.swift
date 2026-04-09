@@ -44,7 +44,7 @@ struct PartTime_Work_timerApp: App {
                     }
                 )
         }
-        .defaultSize(width: 1160, height: 760)
+        .defaultSize(width: 1040, height: 680)
 
         MenuBarExtra {
             MenuBarView()

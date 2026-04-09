@@ -11,70 +11,55 @@ struct WorkspaceOverviewView: View {
 
     let onCreateProject: () -> Void
 
-    private let statColumns = [GridItem(.adaptive(minimum: 150, maximum: 220), spacing: 12)]
+    private let statColumns = [GridItem(.adaptive(minimum: 180, maximum: 260), spacing: 10)]
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                header
-                statsGrid
+            GlassEffectContainer(spacing: 12) {
+                VStack(alignment: .leading, spacing: 14) {
+                    header
+                    statsStack
+                }
             }
-            .padding(18)
+            .padding(16)
         }
         .background(Color(nsColor: .windowBackgroundColor))
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .top, spacing: 12) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Project Tracker")
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
-
-                    Text("Create a project, add tasks, and log multiple time entries per task.")
-                        .font(.body)
-                        .foregroundStyle(.secondary)
-                }
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 12) {
+                Text("Work Timer")
+                    .font(.title2.weight(.semibold))
 
                 Spacer()
 
                 IconActionButton(
                     title: "New Project",
                     systemImage: "plus",
-                    prominence: .prominent,
                     action: onCreateProject
                 )
             }
 
             if store.isRunning {
-                HStack(spacing: 6) {
-                    Image(systemName: "record.circle.fill")
-                        .foregroundStyle(.red)
-                        .imageScale(.small)
-
-                    Text("Active: \(store.activeContextTitle) • \(store.activeClockText)")
-                        .font(.subheadline.weight(.semibold))
-                        .monospacedDigit()
-                        .lineLimit(1)
-                }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 8)
-                .background(
-                    Capsule(style: .continuous)
-                        .fill(Color(nsColor: .windowBackgroundColor))
-                )
+                Label("\(store.activeContextTitle)  \(store.activeClockText)", systemImage: "record.circle.fill")
+                    .font(.callout)
+                    .foregroundStyle(.red)
+                    .monospacedDigit()
+                    .lineLimit(1)
+            } else {
+                Text("Create a project or select one from the sidebar.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(18)
-        .background(
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .fill(Color(nsColor: .controlBackgroundColor))
-        )
+        .padding(12)
+        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
-    private var statsGrid: some View {
-        LazyVGrid(columns: statColumns, spacing: 12) {
+    private var statsStack: some View {
+        LazyVGrid(columns: statColumns, alignment: .leading, spacing: 10) {
             DetailStatCardView(title: "Projects", value: "\(store.projects.count)", detail: "\(store.openProjectCount) open")
             DetailStatCardView(title: "Tracked Time", value: store.totalDurationText, detail: "Across all projects")
             DetailStatCardView(title: "Today", value: store.todayDurationText, detail: "\(store.totalRecordCount) total records")

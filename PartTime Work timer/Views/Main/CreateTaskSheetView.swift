@@ -14,12 +14,13 @@ struct CreateTaskSheetView: View {
     let onCreate: (String) -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
+        VStack(alignment: .leading, spacing: 14) {
             Text("New Task")
-                .font(.title2.bold())
+                .font(.title3.weight(.semibold))
 
             Text("Project: \(projectName)")
                 .foregroundStyle(.secondary)
+                .font(.callout)
 
             TextField("Task name", text: $taskName)
                 .textFieldStyle(.roundedBorder)
@@ -30,16 +31,17 @@ struct CreateTaskSheetView: View {
                 Button("Cancel") {
                     dismiss()
                 }
+                .buttonStyle(.glass)
 
                 Button("Create") {
                     onCreate(taskName)
                     dismiss()
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.glassProminent)
                 .disabled(taskName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
         }
-        .padding(24)
-        .frame(width: 380)
+        .padding(20)
+        .frame(width: 340)
     }
 }

@@ -13,12 +13,9 @@ struct CreateProjectSheetView: View {
     let onCreate: (String) -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
+        VStack(alignment: .leading, spacing: 14) {
             Text("New Project")
-                .font(.title2.bold())
-
-            Text("Create a project to group tasks and see total tracked time across them.")
-                .foregroundStyle(.secondary)
+                .font(.title3.weight(.semibold))
 
             TextField("Project name", text: $projectName)
                 .textFieldStyle(.roundedBorder)
@@ -29,16 +26,17 @@ struct CreateProjectSheetView: View {
                 Button("Cancel") {
                     dismiss()
                 }
+                .buttonStyle(.glass)
 
                 Button("Create") {
                     onCreate(projectName)
                     dismiss()
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.glassProminent)
                 .disabled(projectName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
         }
-        .padding(24)
-        .frame(width: 380)
+        .padding(20)
+        .frame(width: 340)
     }
 }
